@@ -2,9 +2,10 @@
   "name": "paradym-eudi-docs",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "scripts": {
-    "dev": "next --turbopack",
-    "build": "next build",
+    "dev": "next --turbo",
+    "build": "next build --turbo",
     "start": "next start",
     "postbuild": "pagefind --site .next/server/app --output-path public/_pagefind",
     "types:check": "tsc --noEmit",
