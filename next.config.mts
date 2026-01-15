@@ -7,5 +7,7 @@ const withNextra = nextra({
 
 // Export the final Next.js config with Nextra included
 export default withNextra({
+  output: 'export',
+  basePath: process.env.PAGES_BASE_PATH,
   // ... Add regular Next.js options here
 })
