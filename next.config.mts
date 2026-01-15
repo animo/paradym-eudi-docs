@@ -9,5 +9,11 @@ const withNextra = nextra({
 export default withNextra({
   output: 'export',
   basePath: process.env.PAGES_BASE_PATH,
+  turbopack: {
+    resolveAlias: {
+      // Path to your `mdx-components` file with extension
+      'next-mdx-import-source-file': './mdx-components.tsx',
+    },
+  },
   // ... Add regular Next.js options here
 })
