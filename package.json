@@ -2,6 +2,7 @@
   "name": "paradym-eudi-docs",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "scripts": {
     "dev": "next --turbopack",
     "build": "next build",
