@@ -42,6 +42,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Ensures full history is fetched and thus updated-at time is correct
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
@@ -78,6 +81,7 @@ jobs:
           path: ./out
 
   deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' 
     # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
     permissions:
       contents: read
