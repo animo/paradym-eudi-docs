@@ -1,0 +1,40 @@
+{
+  "name": "paradym-eudi-docs",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "next --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "postbuild": "pagefind --site .next/server/app --output-path public/_pagefind",
+    "types:check": "tsc --noEmit",
+    "style:check": "biome check --unsafe",
+    "style:fix": "biome check --write --unsafe"
+  },
+  "keywords": [
+    "EUDI",
+    "Paradym",
+    "Animo Solutions",
+    "OpenID4VC"
+  ],
+  "repository": {
+    "url": "https://github.com/animo/paradym-eudi-docs",
+    "type": "git"
+  },
+  "author": "Paradym <contact@paradym.id>",
+  "packageManager": "pnpm@10.26.1",
+  "dependencies": {
+    "next": "^16.1.2",
+    "nextra": "^4.6.1",
+    "nextra-theme-docs": "^4.6.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.11",
+    "@types/node": "^25.0.8",
+    "@types/react": "^19.2.8",
+    "pagefind": "^1.4.0",
+    "typescript": "^5.9.3"
+  }
+}
