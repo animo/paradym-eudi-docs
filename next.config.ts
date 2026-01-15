@@ -12,7 +12,7 @@ export default withNextra({
   turbopack: {
     resolveAlias: {
       // Path to your `mdx-components` file with extension
-      'next-mdx-import-source-file': './mdx-components.tsx',
+      'next-mdx-import-source-file': './mdx-components.ts',
     },
   },
   // ... Add regular Next.js options here
