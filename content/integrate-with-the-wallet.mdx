@@ -1,0 +1,300 @@
+import { Callout } from 'nextra/components'
+
+
+
+# Integrate with the wallet
+
+You can test the Paradym wallet against your own implementation. If you need an issuer and or verifier to test with, you can test with the [Paradym RP Platform](paradym-rp-platform.mdx), to test the more experimental Beta flows you can use [the Playground](playground.mdx).
+
+
+The following specifications are used (among others which are referenced through the specifications listed below):
+- [RFC9101 JWT-Secured Authorization Request (JAR)](https://www.rfc-editor.org/rfc/rfc9101.html) - For signing of the authorization request
+- [JWT-Secured Authorization Response Mode (JARM)](https://openid.net/specs/oauth-v2-jarm.html) - For encryption of the authorization response
+- [OpenID for Verifiable Presentations]() - For the presentation request and response flow and structure
+- [SD-JWT VC - Draft 5]() or [ISO 18013-5 mDOC]() - As the credential format
+- [Presentation Exchange v2]() or [DCQL]() - For the presentation request structure
+
+## X509 Certificate
+
+<Callout type="info">Optional: to have your organization show as trusted when interacting with the Paradym wallet, send the root X509 certificate to ana@animo.id</Callout>
+
+
+To request data from the wallet, authorization requests must be signed and linked to a valid X509 certificate (chain). There are a couple of requirements on the X509 certificate that should be used.
+- The X509 certificate should include a P256 key, so it can be used for ES256 signing and verification.
+- Must include a `dnsName` Subject Alternative Name claim, e.g. playground.animo.id
+- To link the X509 certificate to the authorization request, the client_id must be the same as the dnsName in the certificate, and the client_id_scheme must be set to x509_san_dns
+- The authorization request must be signed using the private key associated with the X509 certificate according to [RFC9101 JWT-Secured Authorization Request (JAR)](https://www.rfc-editor.org/rfc/rfc9101.html) and include a x5c header where the X509 is a leaf certificate.
+- The wallet currently accepts any X509 certificate, so your certificate will be trusted by default. It is possible to use a certificate chain.
+
+Example Certificate
+
+-----BEGIN CERTIFICATE-----
+MIH6MIGhoAMCAQICEDlbxpcN1V1PRbmc2TtPjNQwCgYIKoZIzj0EAwIwADAeFw03
+MDAxMDEwMDAwMDBaFw0yNTExMjIwODIyMTJaMAAwOTATBgcqhkjOPQIBBggqhkjO
+PQMBBwMiAALcD1XzKepFxWMAOqV+ln1fybBt7DRO5CV0f9A6mRp2xaMdMBswGQYD
+VR0RBBIwEIIOZnVua2UuYW5pbW8uaWQwCgYIKoZIzj0EAwIDSAAwRQIhAIFd2jlr
+ZAzLTLsXdUE7O+CRuxuzk04lGo1eVYIbgT8iAiAQhR/FonhoLLTFjU/3tn5rPyB2
+DaOl3W18W5ugLWHjhQ==
+-----END CERTIFICATE-----
+
+## Credential Query
+
+The wallet supports two query languages to request credentials from the wallet.
+
+- [Presentation Exchange v2](https://identity.foundation/presentation-exchange/spec/v2.0.0/) - has been around for a longer time and is generally better supported at the moment. It is more complex though.
+- [DCQL](https://openid.net/specs/openid-4-verifiable-presentations-1_0-23.html#name-digital-credentials-query-l) - newer query language that was added to OpenID4VP, mainly because of the complexity involved with Presentation Exchange.
+
+If you’re starting with a new implementation, we recommend using DCQL.
+
+### Presentation Exchange
+When using Presentation Exchange, the request should include a Presentation Definition (presentation_definition) property. The response will include a Presentation Submission (presentation_submission), as well as a vp_token that holds the presentation(s) that were shared by the wallet. The gist linked above contains example structures for different possible queries..
+
+### DCQL
+
+<Callout type="info">Working with DCQL? Try out our [DCQL Developer Tool](https://dcql.animo.id/)</Callout>
+
+
+
+When using DCQL, the request should include a DCQL Query (dcql_query) property. The response will include only a vp_token. The gist linked above contains example structures for different possible queries.
+
+DCQL is an alternative to presentation definition and newer method to specify which credentials to request from the wallet. DCQL generally provides a simpler structure, and will probably fully replace presentation definition. You should use either DCQL or presentation definition, not both.
+
+Example DCQL Query
+
+The following dcql query requests the presentation of the PID SD-JWT VC, requesting the disclosure of `given_name`, `family_name`, `age_equal_or_over`, `iss`, and `vct` claims.
+
+```
+{
+  "id": "0679b1e0-1e9d-45d1-ab19-ab6954d7e32c",
+  "name": "Bank account identity verification",
+  "credential_sets": [
+    {
+      "purpose": "To open a bank account we need to verify your identity.",
+      "options": [["pid_sd_jwt"]]
+    }
+  ],
+  "credentials": [
+    {
+      "id": "pid_sd_jwt",
+      "format": "vc+sd-jwt",
+      "meta": {
+        "vct_values": [
+          "https://demo.pid-issuer.bundesdruckerei.de/credentials/pid/1.0",
+          "https://example.bmi.bund.de/credential/pid/1.0",
+          "urn:eu.europa.ec.eudi:pid:1"
+        ]
+      },
+      "claims": [
+        {
+          "path": ["given_name"]
+        },
+        {
+          "path": ["family_name"]
+        },
+        {
+          "path": ["age_equal_or_over", "21"],
+          "values": [true]
+        },
+        {
+          "path": ["iss"],
+          "values": [
+            "https://demo.pid-issuer.bundesdruckerei.de/c",
+            "https://demo.pid-issuer.bundesdruckerei.de/c1",
+            "https://demo.pid-issuer.bundesdruckerei.de/b1"
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Response encryption
+
+The wallet requires response encryption, which means the wallet will encrypt the authorization response before sending it to the verifier. Encryption is performed based on [JWT-Secured Authorization Response Mode (JARM)(https://openid.net/specs/oauth-v2-jarm.html). It is important to distinguish that the request must be signed, while the response must be encrypted.
+
+For the wallet to encrypt the response some parameters need to be included in the authorization request:
+- response_mode should be direct_post.jwt
+- client_metadata should contain a jwks set containing a key where the use is set to enc and the crv is P-256
+- The key in the client_metadata should contain authorization_encrypted_response_alg with value ECDH-ES and authorization_encrypted_response_enc with value A256GCM
+
+The structure of the response can be found in [6.3.1. Response Mode "direct_post.jwt"](https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-response-mode-direct_postjw).
+
+## Request
+
+The request is an OAuth2 Authorization Request, with specific exceptions and modifications applied from OpenID for Verifiable Presentations.
+
+- response_type should be vp_token
+- client_id and client_id_scheme as explained above
+- respone_uri where the wallet will send the response
+- response_mode should be direct_post.jwt as explained above
+- nonce / state are standard OAuth2 request parameters
+- client_metadata defines metadata about the verifier. See OpenID4VP for more information.
+- presentation_definition OR dcql_query as explained above
+- iss / aud / exp / nbf / iat / jti are JWT claims. The values are dictated by the JWT, SIOPv2 and OpenID4VP specifications
+
+Example with presentation definition
+
+```
+{
+  "response_type": "vp_token",
+  "client_id": "funke.animo.id",
+  "client_id_scheme": "x509_san_dns",
+  "response_uri": "https://funke.animo.id/siop/c01ea0f3-34df-41d5-89d1-50ef3d181855/authorize",
+  "response_mode": "direct_post.jwt",
+  "nonce": "1010321599118048944242025",
+  "state": "1086440160753733378632313",
+  "client_metadata": {
+    "jwks": {
+      "keys": [
+        {
+          "use": "enc",
+          "kty": "EC",
+          "crv": "P-256",
+          "x": "PKc7ghIE3KYH_cZ1m1RJcYE_h3Fs0Zt2t9XKEaAq_TE",
+          "y": "EOokc9KKpriM5Zx6Jm93ib0xPeaHDl2YtwzP8AQ-BBE",
+          "kid": "zDnaemk3nBrKpEgNNYQgsiEudcWWRBAvMdrhoZXEkpJJPnj3E"
+        }
+      ]
+    },
+    "authorization_encrypted_response_alg": "ECDH-ES",
+    "authorization_encrypted_response_enc": "A256GCM",
+    "response_types_supported": [
+      "vp_token"
+    ],
+    "vp_formats_supported": {
+      "vc+sd-jwt": {
+        "kb_jwt_alg_values": [
+          "ES256"
+        ],
+        "sd_jwt_alg_values": [
+          "ES256"
+        ]
+      }
+    }
+  },
+  "presentation_definition": {
+    "id": "1ax1k",
+    "name": "Bank account identity verification",
+    "purpose": "To open a bank account we need to verify your identity.",
+    "input_descriptors": [
+      {
+        "id": "xj9qv",
+        "constraints": {
+          "limit_disclosure": "required",
+          "fields": [
+            {
+              "path": [
+                "$.given_name"
+              ]
+            },
+            {
+              "path": [
+                "$.family_name"
+              ]
+            },
+            {
+              "path": [
+                "$.age_equal_or_over.21"
+              ],
+              "filter": {
+                "type": "boolean",
+                "const": true
+              }
+            },
+            {
+              "path": [
+                "$.iss"
+              ],
+              "filter": {
+                "type": "string",
+                "enum": [
+                  "https://demo.pid-issuer.bundesdruckerei.de/c",
+                  "https://demo.pid-issuer.bundesdruckerei.de/c1",
+                  "https://demo.pid-issuer.bundesdruckerei.de/b1",
+                  "https://funke.animo.id"
+                ]
+              }
+            },
+            {
+              "path": [
+                "$.vct"
+              ],
+              "filter": {
+                "type": "string",
+                "enum": [
+                  "https://example.eudi.ec.europa.eu/hiid/1”
+                ]
+              }
+            }
+          ]
+        },
+        "name": "Bank Account Identity Verification",
+        "purpose": "To open a bank account we need to verify your identity."
+      }
+    ]
+  },
+  "iss": "https://funke.animo.id/siop/c01ea0f3-34df-41d5-89d1-50ef3d181855/authorize",
+  "aud": "https://self-issued.me/v2",
+  "exp": 1730122837,
+  "nbf": 1730122717,
+  "iat": 1730122717,
+  "jti": "2d889c08-c349-4977-bb88-fadd5b7f77a2"
+}
+```
+
+## Request Encoding
+
+There are two methods to send:
+- Sending the signed request embedded into the authorization request uri. This is the simplest approach but can result in very large QR codes and links. URLs longer than 2000 characters can cause issues.
+0 Send the request referenced by an https url.
+
+### Embedded request
+
+The structure of an embedded request looks as follows:
+`openid4vp://?client_id=<client_id>&request=<request>`
+
+Where:
+- client_id - The client id of the verifier. Must be a dns name. E.g. funke.animo.id
+- request - The signed request. Must be a JWT.
+
+Example:
+
+```
+openid4vp://?client_id=funke.animo.id&request_uri=https%3A%2F%2Ffunke.animo.id%2Fsiop%2Fc01ea0f3-34df-41d5-89d1-50ef3d181855%2Fauthorization-requests%2Fdfeb4b01-2af8-4c6a-96d3-ceb24c0a10ec
+```
+
+### Referenced request
+
+The structure of a referenced request looks as follows:
+`openid4vp://?client_id=<client_id>&request_uri=<request_uri>`
+
+Where:
+- client_id - The client id of the verifier. Must be a dns name. E.g. funke.animo.id
+- request_uri - An https URL that when fetched returns a JWT.
+
+Example:
+
+```
+openid4vp://?client_id=funke.animo.id&request=eyJ4NWMiOlsiTUlINk1JR2hvQU1DQVFJQ0VEbGJ4cGNOMVYxUFJibWMyVHRQak5Rd0NnWUlLb1pJemowRUF3SXdBREFlRncwM01EQXhNREV3TURBd01EQmFGdzB5TlRFeE1qSXdPREl5TVRKYU1BQXdPVEFUQmdjcWhrak9QUUlCQmdncWhrak9QUU1CQndNaUFBTGNEMVh6S2VwRnhXTUFPcVYrbG4xZnliQnQ3RFJPNUNWMGY5QTZtUnAyeGFNZE1Cc3dHUVlEVlIwUkJCSXdFSUlPWm5WdWEyVXVZVzVwYlc4dWFXUXdDZ1lJS29aSXpqMEVBd0lEU0FBd1JRSWhBSUZkMmpsclpBekxUTHNYZFVFN08rQ1J1eHV6azA0bEdvMWVWWUliZ1Q4aUFpQVFoUi9Gb25ob0xMVEZqVS8zdG41clB5QjJEYU9sM1cxOFc1dWdMV0hqaFE9PSJdLCJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJyZXNwb25zZV90eXBlIjoidnBfdG9rZW4iLCJjbGllbnRfaWQiOiJmdW5rZS5hbmltby5pZCIsImNsaWVudF9pZF9zY2hlbWUiOiJ4NTA5X3Nhbl9kbnMiLCJyZXNwb25zZV91cmkiOiJodHRwczovL2Z1bmtlLmFuaW1vLmlkL3Npb3AvYzAxZWEwZjMtMzRkZi00MWQ1LTg5ZDEtNTBlZjNkMTgxODU1L2F1dGhvcml6ZSIsInJlc3BvbnNlX21vZGUiOiJkaXJlY3RfcG9zdC5qd3QiLCJub25jZSI6IjEwMTAzMjE1OTkxMTgwNDg5NDQyNDIwMjUiLCJzdGF0ZSI6IjEwODY0NDAxNjA3NTM3MzMzNzg2MzIzMTMiLCJjbGllbnRfbWV0YWRhdGEiOnsiandrcyI6eyJrZXlzIjpbeyJ1c2UiOiJlbmMiLCJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6IlBLYzdnaElFM0tZSF9jWjFtMVJKY1lFX2gzRnMwWnQydDlYS0VhQXFfVEUiLCJ5IjoiRU9va2M5S0twcmlNNVp4NkptOTNpYjB4UGVhSERsMll0d3pQOEFRLUJCRSIsImtpZCI6InpEbmFlbWszbkJyS3BFZ05OWVFnc2lFdWRjV1dSQkF2TWRyaG9aWEVrcEpKUG5qM0UifV19LCJhdXRob3JpemF0aW9uX2VuY3J5cHRlZF9yZXNwb25zZV9hbGciOiJFQ0RILUVTIiwiYXV0aG9yaXphdGlvbl9lbmNyeXB0ZWRfcmVzcG9uc2VfZW5jIjoiQTI1NkdDTSIsImNsaWVudF9pZCI6ImZ1bmtlLmFuaW1vLmlkIiwicGFzc0J5IjoiVkFMVUUiLCJyZXNwb25zZVR5cGVzU3VwcG9ydGVkIjpbInZwX3Rva2VuIl0sInN1YmplY3Rfc3ludGF4X3R5cGVzX3N1cHBvcnRlZCI6WyJkaWQ6d2ViIiwiZGlkOmtleSIsImRpZDpqd2siXSwidnBGb3JtYXRzU3VwcG9ydGVkIjp7Imp3dF92YyI6eyJhbGciOlsiRWREU0EiLCJFUzI1NiIsIkVTMjU2SyJdfSwiand0X3ZjX2pzb24iOnsiYWxnIjpbIkVkRFNBIiwiRVMyNTYiLCJFUzI1NksiXX0sImp3dF92cCI6eyJhbGciOlsiRWREU0EiLCJFUzI1NiIsIkVTMjU2SyJdfSwibGRwX3ZjIjp7InByb29mX3R5cGUiOlsiRWQyNTUxOVNpZ25hdHVyZTIwMTgiLCJFZDI1NTE5U2lnbmF0dXJlMjAyMCJdfSwibGRwX3ZwIjp7InByb29mX3R5cGUiOlsiRWQyNTUxOVNpZ25hdHVyZTIwMTgiLCJFZDI1NTE5U2lnbmF0dXJlMjAyMCJdfSwidmMrc2Qtand0Ijp7ImtiX2p3dF9hbGdfdmFsdWVzIjpbIkVkRFNBIiwiRVMyNTYiLCJFUzI1NksiXSwic2Rfand0X2FsZ192YWx1ZXMiOlsiRWREU0EiLCJFUzI1NiIsIkVTMjU2SyJdfX19LCJwcmVzZW50YXRpb25fZGVmaW5pdGlvbiI6eyJpZCI6IjFheDFrIiwibmFtZSI6IkJhbmsgYWNjb3VudCBpZGVudGl0eSB2ZXJpZmljYXRpb24iLCJwdXJwb3NlIjoiVG8gb3BlbiBhIGJhbmsgYWNjb3VudCB3ZSBuZWVkIHRvIHZlcmlmeSB5b3VyIGlkZW50aXR5LiIsImlucHV0X2Rlc2NyaXB0b3JzIjpbeyJpZCI6InhqOXF2IiwiY29uc3RyYWludHMiOnsibGltaXRfZGlzY2xvc3VyZSI6InJlcXVpcmVkIiwiZmllbGRzIjpbeyJwYXRoIjpbIiQuZ2l2ZW5fbmFtZSJdfSx7InBhdGgiOlsiJC5mYW1pbHlfbmFtZSJdfSx7InBhdGgiOlsiJC5hZ2VfZXF1YWxfb3Jfb3Zlci4yMSJdLCJmaWx0ZXIiOnsidHlwZSI6ImJvb2xlYW4iLCJjb25zdCI6dHJ1ZX19LHsicGF0aCI6WyIkLmlzcyJdLCJmaWx0ZXIiOnsidHlwZSI6InN0cmluZyIsImVudW0iOlsiaHR0cHM6Ly9kZW1vLnBpZC1pc3N1ZXIuYnVuZGVzZHJ1Y2tlcmVpLmRlL2MiLCJodHRwczovL2RlbW8ucGlkLWlzc3Vlci5idW5kZXNkcnVja2VyZWkuZGUvYzEiLCJodHRwczovL2RlbW8ucGlkLWlzc3Vlci5idW5kZXNkcnVja2VyZWkuZGUvYjEiLCJodHRwczovL2Z1bmtlLmFuaW1vLmlkIl19fSx7InBhdGgiOlsiJC52Y3QiXSwiZmlsdGVyIjp7InR5cGUiOiJzdHJpbmciLCJlbnVtIjpbImh0dHBzOi8vZXhhbXBsZS5ibWkuYnVuZC5kZS9jcmVkZW50aWFsL3BpZC8xLjAiLCJ1cm46ZXUuZXVyb3BhLmVjLmV1ZGk6cGlkOjEiXX19XX0sIm5hbWUiOiJCYW5rIEFjY291bnQgSWRlbnRpdHkgVmVyaWZpY2F0aW9uIiwicHVycG9zZSI6IlRvIG9wZW4gYSBiYW5rIGFjY291bnQgd2UgbmVlZCB0byB2ZXJpZnkgeW91ciBpZGVudGl0eS4ifV19LCJycF9lcGhfcHViIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoiR2t1RGVxY0lGWEV3QnhMVndmMUJMLVJGX1gtc3Y4dk5Ia3FDNUU0NUdnRSIsInkiOiJOQ3FyUjZqeHJibmFGT3hxdUtFMlloUkY4RWxvV1VtXzNRR0s0eHkxZjhVIn0sImlzcyI6Imh0dHBzOi8vZnVua2UuYW5pbW8uaWQvc2lvcC9jMDFlYTBmMy0zNGRmLTQxZDUtODlkMS01MGVmM2QxODE4NTUvYXV0aG9yaXplIiwiYXVkIjoiaHR0cHM6Ly9zZWxmLWlzc3VlZC5tZS92MiIsImV4cCI6MTczMDEyMjgzNywibmJmIjoxNzMwMTIyNzE3LCJpYXQiOjE3MzAxMjI3MTcsImp0aSI6IjJkODg5YzA4LWMzNDktNDk3Ny1iYjg4LWZhZGQ1YjdmNzdhMiJ9.FqcbWvkUpJBYu9O_BePT1lliLeR9JW_-pDJb4xMNT_QVhKjm2cKe2l0v1chJ0r2u4pCnzGbUDxlC3qNGFVSEDw
+```
+
+## Wallet Invocation
+
+There are two methods to invoke the wallet based on the authorization request uri. 
+- Invocation using QR code
+- Invocation using Deeplink
+
+### Invocation using QR code
+
+To invoke the wallet using a QR code, encode the authorization request uri as a QR code, and scan this with the QR scanner in the wallet. On iOS the Camera app also detects the QR and can prompt to open it in the wallet , but this requires Animo’s EUDI Wallet prototype to be the first installed wallet on the device that has registered the openid4vp:// scheme. Otherwise the URI will be handled by another wallet.
+
+### Invocation using Deeplink
+
+Alternatively you can invoke the wallet by pressing on the authorization request uri on the device, which will be handled as a deeplink and allows you to open the authorization request uri in the wallet. For Android it usually shows an app picker, allowing you to select our wallet to handle the request. On iOS, similarly to scanning it with the Camera app, the first installed app that registered the openid4vp:// scheme will handle the authorization request uri.
+
+## Response Handling
+
+The wallet will construct a response and presentation based on the received authorization request. Once it has constructed the presentation it wraps it in an authorization response and sends it as a POST request  to the response_uri (because response_mode of direct_post is used).
+
+Once the verifier receives the authorization response, it should first decrypt the response (if JARM is used), and then verify the authorization response.
