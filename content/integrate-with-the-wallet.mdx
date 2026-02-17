@@ -23,7 +23,7 @@ To request data from the wallet, authorization requests must be signed and linke
 - Must include a `dnsName` Subject Alternative Name claim, e.g. playground.animo.id
 - To link the X509 certificate to the authorization request, the client_id must be the same as the dnsName in the certificate, and the client_id_scheme must be set to x509_san_dns
 - The authorization request must be signed using the private key associated with the X509 certificate according to [RFC9101 JWT-Secured Authorization Request (JAR)](https://www.rfc-editor.org/rfc/rfc9101.html) and include a x5c header where the X509 is a leaf certificate.
-- The wallet currently accepts any X509 certificate, so your certificate will be trusted by default. It is possible to use a certificate chain.
+- The wallet currently accepts any X509 certificate, so it's not needed to register your certificate. But it will show as unrecongized (and thus untrusted).
 
 Example Certificate
 
