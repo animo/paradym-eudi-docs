@@ -38,17 +38,6 @@ DaOl3W18W5ugLWHjhQ==
 
 ## Credential Query
 
-The wallet supports two query languages to request credentials from the wallet.
-
-- [Presentation Exchange v2](https://identity.foundation/presentation-exchange/spec/v2.0.0/) - has been around for a longer time and is generally better supported at the moment. It is more complex though.
-- [DCQL](https://openid.net/specs/openid-4-verifiable-presentations-1_0-23.html#name-digital-credentials-query-l) - newer query language that was added to OpenID4VP, mainly because of the complexity involved with Presentation Exchange.
-
-If you’re starting with a new implementation, we recommend using DCQL.
-
-### Presentation Exchange
-When using Presentation Exchange, the request should include a Presentation Definition (presentation_definition) property. The response will include a Presentation Submission (presentation_submission), as well as a vp_token that holds the presentation(s) that were shared by the wallet. The gist linked above contains example structures for different possible queries..
-
-### DCQL
 
 <Callout type="info">Working with DCQL? Try out our [DCQL Developer Tool](https://dcql.animo.id/)</Callout>
 
