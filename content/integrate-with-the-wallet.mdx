@@ -75,11 +75,9 @@ The following dcql query requests the presentation of the PID SD-JWT VC, request
   "credentials": [
     {
       "id": "pid_sd_jwt",
-      "format": "vc+sd-jwt",
+      "format": "dc+sd-jwt",
       "meta": {
         "vct_values": [
-          "https://demo.pid-issuer.bundesdruckerei.de/credentials/pid/1.0",
-          "https://example.bmi.bund.de/credential/pid/1.0",
           "urn:eu.europa.ec.eudi:pid:1"
         ]
       },
@@ -89,18 +87,6 @@ The following dcql query requests the presentation of the PID SD-JWT VC, request
         },
         {
           "path": ["family_name"]
-        },
-        {
-          "path": ["age_equal_or_over", "21"],
-          "values": [true]
-        },
-        {
-          "path": ["iss"],
-          "values": [
-            "https://demo.pid-issuer.bundesdruckerei.de/c",
-            "https://demo.pid-issuer.bundesdruckerei.de/c1",
-            "https://demo.pid-issuer.bundesdruckerei.de/b1"
-          ]
         }
       ]
     }
