@@ -96,7 +96,7 @@ The following dcql query requests the presentation of the PID SD-JWT VC, request
 
 ## Response encryption
 
-The wallet requires response encryption, which means the wallet will encrypt the authorization response before sending it to the verifier. Encryption is performed based on [JWT-Secured Authorization Response Mode (JARM)(https://openid.net/specs/oauth-v2-jarm.html). It is important to distinguish that the request must be signed, while the response must be encrypted.
+The Paradym wallet optionally supports response encryption, which means the wallet will encrypt the authorization response before sending it to the verifier. It is important to distinguish that the request is usually signed, while the response is usually encrypted.
 
 For the wallet to encrypt the response some parameters need to be included in the authorization request:
 - response_mode should be direct_post.jwt
