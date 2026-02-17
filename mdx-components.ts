@@ -1,6 +1,6 @@
+import { Cards } from 'nextra/components'
 import { useMDXComponents as getDocsMDXComponents } from 'nextra-theme-docs'
 import { Card } from './components/Card'
-import { Cards } from 'nextra/components'
 
 const docsComponents = getDocsMDXComponents()
 

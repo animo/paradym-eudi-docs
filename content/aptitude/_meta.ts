@@ -1,4 +1,4 @@
 export default {
-    index: 'Aptitude',
-    payments: 'Payments'
+  index: 'Aptitude',
+  payments: 'Payments',
 }
