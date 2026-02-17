@@ -99,11 +99,11 @@ The following dcql query requests the presentation of the PID SD-JWT VC, request
 The Paradym wallet optionally supports response encryption, which means the wallet will encrypt the authorization response before sending it to the verifier. It is important to distinguish that the request is usually signed, while the response is usually encrypted.
 
 For the wallet to encrypt the response some parameters need to be included in the authorization request:
-- response_mode should be direct_post.jwt
-- client_metadata should contain a jwks set containing a key where the use is set to enc and the crv is P-256
-- The key in the client_metadata should contain authorization_encrypted_response_alg with value ECDH-ES and authorization_encrypted_response_enc with value A256GCM
+- `response_mode` must be `direct_post.jwt`
+- `client_metadata` should contain a jwks set containing a key where the use is set to `enc` and the `crv` is `P-256`
+- If another encryption algorithm than A128GCM is used, the `client_metadata` must contain `encrypted_response_enc_values_supported`. Supported algorithms are `A256GCM` and `A128GCM`.
 
-The structure of the response can be found in [6.3.1. Response Mode "direct_post.jwt"](https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-response-mode-direct_postjw).
+The structure of the response can be found in [Response Mode "direct_post.jwt"](https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-response-mode-direct_post).
 
 ## Request
 
