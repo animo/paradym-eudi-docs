@@ -51,6 +51,7 @@ All HAIP requirements should be followed, there's no exceptions. There are some 
 - The Paradym Wallet does not take revocation status into account yet when selecting credentials for a presentation request. Expired credentials are shown as such in the wallet, but can still be shared. This means that the user might present a revoked or expired credential.
 - Credential selection is not supported yet. The first credential that matches will be used in the presentation, it is recommended to make your query as explicit as possible (e.g. including Trusted Authorities) to prevent an invalid credential from being shared.
 - If a requested credential was not found, the wallet will show whether 
+- The Paradym Wallet supports presenting credentials using OpenID4VP over the W3C Digital Credentials API (as defined in HAIP), but this only works on Android due to limitations in the DC API for iOS. Presenting credentials using DC API based on 18013-7 Annex C is not supported yet.
 
 ## Proximity/In-Person Integration
 
