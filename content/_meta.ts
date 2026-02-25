@@ -7,6 +7,7 @@ export default {
     title: 'Getting Started',
   },
   'what-we-support': 'What we support',
+  'install-the-wallet': 'Install the Wallet',
   'integrate-with-the-wallet': 'Integrate with the Wallet',
   contact: 'Contact us',
   '-- Projects': {
