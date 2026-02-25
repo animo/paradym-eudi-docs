@@ -40,7 +40,7 @@ const navbar = (
         <span style={{ marginLeft: '.4em', fontWeight: 800 }}>Paradym</span>
       </>
     }
-  // ... Your additional navbar options
+    // ... Your additional navbar options
   />
 )
 const footer = <Footer>{new Date().getFullYear()} © Paradym.</Footer>
@@ -67,7 +67,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
           pageMap={await getPageMap()}
           docsRepositoryBase="https://github.com/animo/paradym-eudi-docs"
           footer={footer}
-        // ... Your additional layout options
+          // ... Your additional layout options
         >
           {children}
         </Layout>
