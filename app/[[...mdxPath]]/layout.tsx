@@ -30,9 +30,9 @@ const navbar = (
               y2="511.99"
               gradientUnits="userSpaceOnUse"
             >
-              <stop stop-color="#A77BF3" />
-              <stop offset="0.51" stop-color="#635CFF" />
-              <stop offset="1" stop-color="#93F5EC" />
+              <stop stopColor="#A77BF3" />
+              <stop offset="0.51" stopColor="#635CFF" />
+              <stop offset="1" stopColor="#93F5EC" />
             </linearGradient>
           </defs>
         </svg>
