@@ -14,8 +14,8 @@ export default {
     type: 'separator',
     title: 'Projects',
   },
-  potential: 'Potential',
   aptitude: 'Aptitude',
+  potential: 'Potential',
   'eudiw-unfold': 'EUDIW Unfold',
   findynet: 'Findynet',
   eduwallet: 'Eduwallet',
@@ -23,7 +23,9 @@ export default {
     type: 'separator',
     title: 'Other resources',
   },
-  'paradym-rp-platform': 'Paradym Relying Party Platform',
   playground: 'Animo Playground',
+  libraries: 'Open-source Libraries',
+  'paradym-rp-platform': 'Paradym Relying Party Platform',
+
   'demos-and-video': 'Demonstrations and video',
 }

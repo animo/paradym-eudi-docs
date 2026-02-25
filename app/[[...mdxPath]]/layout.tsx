@@ -9,7 +9,7 @@ export const metadata = {
   // For more information on metadata API, see: https://nextjs.org/docs/app/building-your-application/optimizing/metadata
 }
 
-const banner = <Banner storageKey="some-key">The Paradym Wallet supports OpenID4VC 1.0 🎉</Banner>
+const banner = <Banner storageKey="some-key">The Paradym Wallet now a part of the France Identité playground 🎉</Banner>
 const navbar = (
   <Navbar
     logo={
