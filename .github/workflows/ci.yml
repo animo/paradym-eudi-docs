@@ -16,7 +16,7 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
       - name: Setup NodeJS
         uses: actions/setup-node@v6
         with:
@@ -46,7 +46,7 @@ jobs:
           # Ensures full history is fetched and thus updated-at time is correct
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
       - uses: actions/setup-node@v4
         with:
           node-version: 24
